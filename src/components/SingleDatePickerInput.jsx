@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import styled from 'styled-components';
 import { forbidExtraProps, nonNegativeInteger } from '../utils/propTypes';
-import { withStyles, withStylesPropTypes } from 'react-with-styles';
 
 import { SingleDatePickerInputPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
@@ -17,7 +17,6 @@ import openDirectionShape from '../shapes/OpenDirectionShape';
 import { ICON_BEFORE_POSITION, ICON_AFTER_POSITION, OPEN_DOWN } from '../constants';
 
 const propTypes = forbidExtraProps({
-  ...withStylesPropTypes,
   id: PropTypes.string.isRequired,
   children: PropTypes.node,
   placeholder: PropTypes.string,
@@ -96,6 +95,83 @@ const defaultProps = {
   phrases: SingleDatePickerInputPhrases,
 };
 
+const SingleDatePickerInputContainer = styled.div`
+  display: ${({ block }) => block ? 'block' : 'inline-block'};
+  background-color: ${({ theme, disabled }) => disabled ? theme.reactDates.color.disabled : theme.reactDates.color.background};
+  
+  ${({ noBorder, theme }) => !noBorder && `
+    border-color: ${theme.reactDates.color.border};
+    border-width: ${theme.reactDates.border.pickerInput.borderWidth};
+    border-style: ${theme.reactDates.border.pickerInput.borderStyle};
+    border-radius: ${theme.reactDates.border.pickerInput.borderRadius};
+  `}
+  
+  ${({ isRTL }) => isRTL && `
+    direction: ${noflip('rtl')};
+  `}
+  
+  ${({ showClearDate }) => showClearDate && `
+    padding-right: 30px;
+  `}
+`;
+
+const ClearDateButton = styled.button`
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  overflow: visible;
+  cursor: pointer;
+  padding: ${({ small }) => small ? '6px' : '10px'};
+  margin: 0 10px 0 5px;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  visibility: ${({ displayValue }) => !displayValue ? 'hidden' : 'visible'};
+  
+  ${({ customCloseIcon, theme }) => !customCloseIcon && `
+    &:focus {
+      background: ${theme.reactDates.color.core.border};
+      border-radius: 50%;
+    }
+    
+    &:hover {
+      background: ${theme.reactDates.color.core.border};
+      border-radius: 50%;
+    }
+  `}
+`;
+
+const ClearDateIcon = styled.div`
+  fill: ${({ theme }) => theme.reactDates.color.core.grayLight};
+  height: ${({ small }) => small ? '9px' : '12px'};
+  width: 15px;
+  vertical-align: middle;
+`;
+
+const CalendarIconButton = styled.button`
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  overflow: visible;
+  cursor: pointer;
+  display: inline-block;
+  vertical-align: middle;
+  padding: 10px;
+  margin: 0 5px 0 10px;
+`;
+
+const CalendarIconWrapper = styled.div`
+  fill: ${({ theme }) => theme.reactDates.color.core.grayLight};
+  height: 15px;
+  width: 14px;
+  vertical-align: middle;
+`;
+
 function SingleDatePickerInput({
   id,
   children,
@@ -131,25 +207,21 @@ function SingleDatePickerInput({
   small,
   regular,
   verticalSpacing,
-  css,
-  styles,
 }) {
   const calendarIcon = customInputIcon || (
-    <CalendarIcon {...css(styles.SingleDatePickerInput_calendarIcon_svg)} />
+    <CalendarIconWrapper>
+      <CalendarIcon />
+    </CalendarIconWrapper>
   );
   const closeIcon = customCloseIcon || (
-    <CloseButton
-      {...css(
-        styles.SingleDatePickerInput_clearDate_svg,
-        small && styles.SingleDatePickerInput_clearDate_svg__small,
-      )}
-    />
+    <ClearDateIcon small={small}>
+      <CloseButton />
+    </ClearDateIcon>
   );
 
   const screenReaderText = screenReaderMessage || phrases.keyboardForwardNavigationInstructions;
   const inputIcon = (showDefaultInputIcon || customInputIcon !== null) && (
-    <button
-      {...css(styles.SingleDatePickerInput_calendarIcon)}
+    <CalendarIconButton
       type="button"
       disabled={disabled}
       aria-label={phrases.focusStartDate}
@@ -157,19 +229,16 @@ function SingleDatePickerInput({
       tabIndex="-1"
     >
       {calendarIcon}
-    </button>
+    </CalendarIconButton>
   );
 
   return (
-    <div
-      {...css(
-        styles.SingleDatePickerInput,
-        disabled && styles.SingleDatePickerInput__disabled,
-        isRTL && styles.SingleDatePickerInput__rtl,
-        !noBorder && styles.SingleDatePickerInput__withBorder,
-        block && styles.SingleDatePickerInput__block,
-        showClearDate && styles.SingleDatePickerInput__showClearDate,
-      )}
+    <SingleDatePickerInputContainer
+      disabled={disabled}
+      isRTL={isRTL}
+      noBorder={noBorder}
+      block={block}
+      showClearDate={showClearDate}
     >
       {inputIconPosition === ICON_BEFORE_POSITION && inputIcon}
 
@@ -203,127 +272,26 @@ function SingleDatePickerInput({
       {children}
 
       {showClearDate && (
-        <button
-          {...css(
-            styles.SingleDatePickerInput_clearDate,
-            small && styles.SingleDatePickerInput_clearDate__small,
-            !customCloseIcon && styles.SingleDatePickerInput_clearDate__default,
-            !displayValue && styles.SingleDatePickerInput_clearDate__hide,
-          )}
+        <ClearDateButton
+          small={small}
+          customCloseIcon={customCloseIcon}
+          displayValue={displayValue}
           type="button"
           aria-label={phrases.clearDate}
           disabled={disabled}
           onClick={onClearDate}
         >
           {closeIcon}
-        </button>
+        </ClearDateButton>
       )}
 
       {inputIconPosition === ICON_AFTER_POSITION && inputIcon}
 
-    </div>
+    </SingleDatePickerInputContainer>
   );
 }
 
 SingleDatePickerInput.propTypes = propTypes;
 SingleDatePickerInput.defaultProps = defaultProps;
 
-export default withStyles(({ reactDates: { border, color } }) => ({
-  SingleDatePickerInput: {
-    display: 'inline-block',
-    backgroundColor: color.background,
-  },
-
-  SingleDatePickerInput__withBorder: {
-    borderColor: color.border,
-    borderWidth: border.pickerInput.borderWidth,
-    borderStyle: border.pickerInput.borderStyle,
-    borderRadius: border.pickerInput.borderRadius,
-  },
-
-  SingleDatePickerInput__rtl: {
-    direction: noflip('rtl'),
-  },
-
-  SingleDatePickerInput__disabled: {
-    backgroundColor: color.disabled,
-  },
-
-  SingleDatePickerInput__block: {
-    display: 'block',
-  },
-
-  SingleDatePickerInput__showClearDate: {
-    paddingRight: 30, // TODO: should be noflip wrapped and handled by an isRTL prop
-  },
-
-  SingleDatePickerInput_clearDate: {
-    background: 'none',
-    border: 0,
-    color: 'inherit',
-    font: 'inherit',
-    lineHeight: 'normal',
-    overflow: 'visible',
-
-    cursor: 'pointer',
-    padding: 10,
-    margin: '0 10px 0 5px', // TODO: should be noflip wrapped and handled by an isRTL prop
-    position: 'absolute',
-    right: 0, // TODO: should be noflip wrapped and handled by an isRTL prop
-    top: '50%',
-    transform: 'translateY(-50%)',
-  },
-
-  SingleDatePickerInput_clearDate__default: {
-    ':focus': {
-      background: color.core.border,
-      borderRadius: '50%',
-    },
-
-    ':hover': {
-      background: color.core.border,
-      borderRadius: '50%',
-    },
-  },
-
-  SingleDatePickerInput_clearDate__small: {
-    padding: 6,
-  },
-
-  SingleDatePickerInput_clearDate__hide: {
-    visibility: 'hidden',
-  },
-
-  SingleDatePickerInput_clearDate_svg: {
-    fill: color.core.grayLight,
-    height: 12,
-    width: 15,
-    verticalAlign: 'middle',
-  },
-
-  SingleDatePickerInput_clearDate_svg__small: {
-    height: 9,
-  },
-
-  SingleDatePickerInput_calendarIcon: {
-    background: 'none',
-    border: 0,
-    color: 'inherit',
-    font: 'inherit',
-    lineHeight: 'normal',
-    overflow: 'visible',
-
-    cursor: 'pointer',
-    display: 'inline-block',
-    verticalAlign: 'middle',
-    padding: 10,
-    margin: '0 5px 0 10px', // TODO: should be noflip wrapped and handled by an isRTL prop
-  },
-
-  SingleDatePickerInput_calendarIcon_svg: {
-    fill: color.core.grayLight,
-    height: 15,
-    width: 14,
-    verticalAlign: 'middle',
-  },
-}), { pureComponent: typeof React.PureComponent !== 'undefined' })(SingleDatePickerInput);
+export default SingleDatePickerInput;

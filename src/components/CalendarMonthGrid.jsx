@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import styled from 'styled-components';
 import momentPropTypes from 'react-moment-proptypes';
 import { forbidExtraProps, mutuallyExclusiveProps, nonNegativeInteger } from '../utils/propTypes';
-import { withStyles, withStylesPropTypes } from 'react-with-styles';
 import moment from 'moment';
 import { addEventListener } from 'consolidated-events';
 
@@ -31,7 +31,6 @@ import {
 } from '../constants';
 
 const propTypes = forbidExtraProps({
-  ...withStylesPropTypes,
   enableOutsideDays: PropTypes.bool,
   firstVisibleMonthIndex: PropTypes.number,
   horizontalMonthPadding: nonNegativeInteger,
@@ -113,6 +112,55 @@ function getMonths(initialMonth, numberOfMonths, withoutTransitionMonths) {
 
   return months;
 }
+
+const CalendarMonthGridContainer = styled.div`
+  background: ${({ theme }) => theme.reactDates.color.background};
+  text-align: ${noflip('left')};
+  z-index: ${({ theme, isAnimating }) => isAnimating ? theme.reactDates.zIndex + 1 : theme.reactDates.zIndex};
+  
+  ${({ isHorizontal, theme }) => isHorizontal && `
+    position: absolute;
+    left: ${noflip(theme.reactDates.spacing.dayPickerHorizontalPadding)};
+  `}
+  
+  ${({ isVertical }) => isVertical && `
+    margin: 0 auto;
+  `}
+  
+  ${({ isVerticalScrollable }) => isVerticalScrollable && `
+    margin: 0 auto;
+  `}
+  
+  ${({ isAnimating, transitionDuration }) => isAnimating && transitionDuration && `
+    transition: transform ${transitionDuration}ms ease-in-out 0.1s;
+  `}
+`;
+
+const CalendarMonthWrapper = styled.div`
+  ${({ isHorizontal }) => isHorizontal && `
+    display: inline-block;
+    vertical-align: top;
+    min-height: 100%;
+  `}
+  
+  ${({ hideForAnimation, theme }) => hideForAnimation && `
+    position: absolute;
+    z-index: ${theme.reactDates.zIndex - 1};
+    opacity: 0;
+    pointer-events: none;
+  `}
+  
+  ${({ showForAnimation, isVertical, isRTL, calendarMonthWidth, translationValue }) => showForAnimation && `
+    position: absolute;
+    ${!isVertical && !isRTL ? `left: -${calendarMonthWidth}px;` : ''}
+    ${!isVertical && isRTL ? 'right: 0;' : ''}
+    ${isVertical ? `top: -${translationValue}px;` : ''}
+  `}
+  
+  ${({ isVisible, isAnimating }) => !isVisible && !isAnimating && `
+    visibility: hidden;
+  `}
+`;
 
 class CalendarMonthGrid extends React.PureComponent {
   constructor(props) {
@@ -260,8 +308,6 @@ class CalendarMonthGrid extends React.PureComponent {
       focusedDate,
       isFocused,
       isRTL,
-      css,
-      styles,
       phrases,
       dayAriaLabelFormat,
       transitionDuration,
@@ -287,21 +333,16 @@ class CalendarMonthGrid extends React.PureComponent {
     const transformValue = `${transformType}(${translationValue}px)`;
 
     return (
-      <div
-        {...css(
-          styles.CalendarMonthGrid,
-          isHorizontal && styles.CalendarMonthGrid__horizontal,
-          isVertical && styles.CalendarMonthGrid__vertical,
-          isVerticalScrollable && styles.CalendarMonthGrid__vertical_scrollable,
-          isAnimating && styles.CalendarMonthGrid__animating,
-          isAnimating && transitionDuration && {
-            transition: `transform ${transitionDuration}ms ease-in-out 0.1s`,
-          },
-          {
-            ...getTransformStyles(transformValue),
-            width,
-          },
-        )}
+      <CalendarMonthGridContainer
+        isHorizontal={isHorizontal}
+        isVertical={isVertical}
+        isVerticalScrollable={isVerticalScrollable}
+        isAnimating={isAnimating}
+        transitionDuration={transitionDuration}
+        style={{
+          ...getTransformStyles(transformValue),
+          width,
+        }}
         ref={this.setContainerRef}
         onTransitionEnd={onMonthTransitionEnd}
       >
@@ -312,25 +353,17 @@ class CalendarMonthGrid extends React.PureComponent {
           const showForAnimation = i === 0 && isAnimating && isVisible;
           const monthString = toISOMonthString(month);
           return (
-            <div
+            <CalendarMonthWrapper
               key={monthString}
-              {...css(
-                isHorizontal && styles.CalendarMonthGrid_month__horizontal,
-                hideForAnimation && styles.CalendarMonthGrid_month__hideForAnimation,
-                showForAnimation && !isVertical && !isRTL && {
-                  position: 'absolute',
-                  left: -calendarMonthWidth,
-                },
-                showForAnimation && !isVertical && isRTL && {
-                  position: 'absolute',
-                  right: 0,
-                },
-                showForAnimation && isVertical && {
-                  position: 'absolute',
-                  top: -translationValue,
-                },
-                !isVisible && !isAnimating && styles.CalendarMonthGrid_month__hidden,
-              )}
+              isHorizontal={isHorizontal}
+              hideForAnimation={hideForAnimation}
+              showForAnimation={showForAnimation}
+              isVertical={isVertical}
+              isRTL={isRTL}
+              calendarMonthWidth={calendarMonthWidth}
+              translationValue={translationValue}
+              isVisible={isVisible}
+              isAnimating={isAnimating}
             >
               <CalendarMonth
                 month={month}
@@ -358,10 +391,10 @@ class CalendarMonthGrid extends React.PureComponent {
                 verticalBorderSpacing={verticalBorderSpacing}
                 horizontalMonthPadding={horizontalMonthPadding}
               />
-            </div>
+            </CalendarMonthWrapper>
           );
         })}
-      </div>
+      </CalendarMonthGridContainer>
     );
   }
 }
@@ -369,50 +402,4 @@ class CalendarMonthGrid extends React.PureComponent {
 CalendarMonthGrid.propTypes = propTypes;
 CalendarMonthGrid.defaultProps = defaultProps;
 
-export default withStyles(({
-  reactDates: {
-    color,
-    spacing,
-    zIndex,
-  },
-}) => ({
-  CalendarMonthGrid: {
-    background: color.background,
-    textAlign: noflip('left'),
-    zIndex,
-  },
-
-  CalendarMonthGrid__animating: {
-    zIndex: zIndex + 1,
-  },
-
-  CalendarMonthGrid__horizontal: {
-    position: 'absolute',
-    left: noflip(spacing.dayPickerHorizontalPadding),
-  },
-
-  CalendarMonthGrid__vertical: {
-    margin: '0 auto',
-  },
-
-  CalendarMonthGrid__vertical_scrollable: {
-    margin: '0 auto',
-  },
-
-  CalendarMonthGrid_month__horizontal: {
-    display: 'inline-block',
-    verticalAlign: 'top',
-    minHeight: '100%',
-  },
-
-  CalendarMonthGrid_month__hideForAnimation: {
-    position: 'absolute',
-    zIndex: zIndex - 1,
-    opacity: 0,
-    pointerEvents: 'none',
-  },
-
-  CalendarMonthGrid_month__hidden: {
-    visibility: 'hidden',
-  },
-}), { pureComponent: typeof React.PureComponent !== 'undefined' })(CalendarMonthGrid);
+export default CalendarMonthGrid;
