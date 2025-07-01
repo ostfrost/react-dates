@@ -18,3 +18,5 @@ export { default as isSameDay } from './utils/isSameDay';
 export { default as toISODateString } from './utils/toISODateString';
 export { default as toLocalizedDateString } from './utils/toLocalizedDateString';
 export { default as toMomentObject } from './utils/toMomentObject';
+export { default as ThemeProvider } from './theme/ThemeProvider';
+export { default as DefaultTheme } from './theme/DefaultTheme';

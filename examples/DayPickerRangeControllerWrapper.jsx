@@ -2,7 +2,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import momentPropTypes from 'react-moment-proptypes';
-import { forbidExtraProps } from 'airbnb-prop-types';
+import { forbidExtraProps } from '../src/utils/propTypes';
 import moment from 'moment';
 import omit from 'lodash/omit';
 

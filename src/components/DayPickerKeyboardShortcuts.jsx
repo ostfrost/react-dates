@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { forbidExtraProps } from 'airbnb-prop-types';
-import { withStyles, withStylesPropTypes } from 'react-with-styles';
+import { forbidExtraProps } from '../utils/propTypes';
+import styled from 'styled-components';
 
 import { DayPickerKeyboardShortcutsPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
@@ -13,8 +13,158 @@ export const TOP_LEFT = 'top-left';
 export const TOP_RIGHT = 'top-right';
 export const BOTTOM_RIGHT = 'bottom-right';
 
+const ButtonReset = styled.button`
+  background: none;
+  border: 0;
+  border-radius: 0;
+  color: inherit;
+  font: inherit;
+  line-height: normal;
+  overflow: visible;
+  padding: 0;
+  cursor: pointer;
+  font-size: ${({ theme }) => theme.reactDates.font.size};
+
+  &:active {
+    outline: none;
+  }
+`;
+
+const ShowButton = styled(ButtonReset)`
+  width: 33px;
+  height: 26px;
+  position: absolute;
+  z-index: ${({ theme }) => theme.reactDates.zIndex + 2};
+
+  &::before {
+    content: "";
+    display: block;
+    position: absolute;
+  }
+
+  ${({ buttonLocation, theme }) => buttonLocation === BOTTOM_RIGHT && `
+    bottom: 0;
+    right: 0;
+
+    &::before {
+      border-top: 26px solid transparent;
+      border-right: 33px solid ${theme.reactDates.color.core.primary};
+      bottom: 0;
+      right: 0;
+    }
+
+    &:hover::before {
+      border-right: 33px solid ${theme.reactDates.color.core.primary_dark};
+    }
+  `}
+
+  ${({ buttonLocation, theme }) => buttonLocation === TOP_RIGHT && `
+    top: 0;
+    right: 0;
+
+    &::before {
+      border-bottom: 26px solid transparent;
+      border-right: 33px solid ${theme.reactDates.color.core.primary};
+      top: 0;
+      right: 0;
+    }
+
+    &:hover::before {
+      border-right: 33px solid ${theme.reactDates.color.core.primary_dark};
+    }
+  `}
+
+  ${({ buttonLocation, theme }) => buttonLocation === TOP_LEFT && `
+    top: 0;
+    left: 0;
+
+    &::before {
+      border-bottom: 26px solid transparent;
+      border-left: 33px solid ${theme.reactDates.color.core.primary};
+      top: 0;
+      left: 0;
+    }
+
+    &:hover::before {
+      border-left: 33px solid ${theme.reactDates.color.core.primary_dark};
+    }
+  `}
+`;
+
+const ShowSpan = styled.span`
+  color: ${({ theme }) => theme.reactDates.color.core.white};
+  position: absolute;
+
+  ${({ buttonLocation }) => buttonLocation === BOTTOM_RIGHT && `
+    bottom: 0;
+    right: 5px;
+  `}
+
+  ${({ buttonLocation }) => buttonLocation === TOP_RIGHT && `
+    top: 1px;
+    right: 5px;
+  `}
+
+  ${({ buttonLocation }) => buttonLocation === TOP_LEFT && `
+    top: 1px;
+    left: 5px;
+  `}
+`;
+
+const Panel = styled.div`
+  overflow: auto;
+  background: ${({ theme }) => theme.reactDates.color.background};
+  border: 1px solid ${({ theme }) => theme.reactDates.color.core.border};
+  border-radius: 2px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  z-index: ${({ theme }) => theme.reactDates.zIndex + 2};
+  padding: 22px;
+  margin: 33px;
+  text-align: left; /* TODO: investigate use of text-align throughout the library */
+`;
+
+const Title = styled.div`
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+`;
+
+const List = styled.ul`
+  list-style: none;
+  padding: 0;
+  font-size: ${({ theme }) => theme.reactDates.font.size};
+`;
+
+const CloseButtonStyled = styled(ButtonReset)`
+  position: absolute;
+  right: 22px;
+  top: 22px;
+  z-index: ${({ theme }) => theme.reactDates.zIndex + 2};
+
+  &:active {
+    outline: none;
+  }
+`;
+
+const CloseSvg = styled.div`
+  height: 15px;
+  width: 15px;
+  fill: ${({ theme }) => theme.reactDates.color.core.grayLighter};
+
+  &:hover {
+    fill: ${({ theme }) => theme.reactDates.color.core.grayLight};
+  }
+
+  &:focus {
+    fill: ${({ theme }) => theme.reactDates.color.core.grayLight};
+  }
+`;
+
 const propTypes = forbidExtraProps({
-  ...withStylesPropTypes,
   block: PropTypes.bool,
   // TODO: rename button location to be direction-agnostic
   buttonLocation: PropTypes.oneOf([TOP_LEFT, TOP_RIGHT, BOTTOM_RIGHT]),
@@ -166,8 +316,6 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
       buttonLocation,
       showKeyboardShortcutsPanel,
       closeKeyboardShortcutsPanel,
-      css,
-      styles,
       phrases,
       renderKeyboardShortcutsButton,
       renderKeyboardShortcutsPanel,
@@ -176,10 +324,6 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
     const toggleButtonText = showKeyboardShortcutsPanel
       ? phrases.hideKeyboardShortcutsPanel
       : phrases.showKeyboardShortcutsPanel;
-
-    const bottomRight = buttonLocation === BOTTOM_RIGHT;
-    const topRight = buttonLocation === TOP_RIGHT;
-    const topLeft = buttonLocation === TOP_LEFT;
 
     return (
       <div>
@@ -191,15 +335,9 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
             ariaLabel: toggleButtonText,
           })}
         {!renderKeyboardShortcutsButton && (
-          <button
+          <ShowButton
             ref={this.setShowKeyboardShortcutsButtonRef}
-            {...css(
-              styles.DayPickerKeyboardShortcuts_buttonReset,
-              styles.DayPickerKeyboardShortcuts_show,
-              bottomRight && styles.DayPickerKeyboardShortcuts_show__bottomRight,
-              topRight && styles.DayPickerKeyboardShortcuts_show__topRight,
-              topLeft && styles.DayPickerKeyboardShortcuts_show__topLeft,
-            )}
+            buttonLocation={buttonLocation}
             type="button"
             aria-label={toggleButtonText}
             onClick={this.onShowKeyboardShortcutsButtonClick}
@@ -207,17 +345,10 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
               e.currentTarget.blur();
             }}
           >
-            <span
-              {...css(
-                styles.DayPickerKeyboardShortcuts_showSpan,
-                bottomRight && styles.DayPickerKeyboardShortcuts_showSpan__bottomRight,
-                topRight && styles.DayPickerKeyboardShortcuts_showSpan__topRight,
-                topLeft && styles.DayPickerKeyboardShortcuts_showSpan__topLeft,
-              )}
-            >
+            <ShowSpan buttonLocation={buttonLocation}>
               ?
-            </span>
-          </button>
+            </ShowSpan>
+          </ShowButton>
         )}
         {showKeyboardShortcutsPanel && (
           renderKeyboardShortcutsPanel ? (
@@ -229,38 +360,29 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
               title: phrases.keyboardShortcuts,
             })
           ) : (
-            <div
-              {...css(styles.DayPickerKeyboardShortcuts_panel)}
+            <Panel
               role="dialog"
               aria-labelledby="DayPickerKeyboardShortcuts_title"
               aria-describedby="DayPickerKeyboardShortcuts_description"
             >
-              <div
-                {...css(styles.DayPickerKeyboardShortcuts_title)}
-                id="DayPickerKeyboardShortcuts_title"
-              >
+              <Title id="DayPickerKeyboardShortcuts_title">
                 {phrases.keyboardShortcuts}
-              </div>
+              </Title>
 
-              <button
+              <CloseButtonStyled
                 ref={this.setHideKeyboardShortcutsButtonRef}
-                {...css(
-                  styles.DayPickerKeyboardShortcuts_buttonReset,
-                  styles.DayPickerKeyboardShortcuts_close,
-                )}
                 type="button"
                 tabIndex="0"
                 aria-label={phrases.hideKeyboardShortcutsPanel}
                 onClick={closeKeyboardShortcutsPanel}
                 onKeyDown={this.onKeyDown}
               >
-                <CloseButton {...css(styles.DayPickerKeyboardShortcuts_closeSvg)} />
-              </button>
+                <CloseSvg>
+                  <CloseButton />
+                </CloseSvg>
+              </CloseButtonStyled>
 
-              <ul
-                {...css(styles.DayPickerKeyboardShortcuts_list)}
-                id="DayPickerKeyboardShortcuts_description"
-              >
+              <List id="DayPickerKeyboardShortcuts_description">
                 {this.keyboardShortcuts.map(({ unicode, label, action }) => (
                   <KeyboardShortcutRow
                     key={label}
@@ -270,8 +392,8 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
                     block={block}
                   />
                 ))}
-              </ul>
-            </div>
+              </List>
+            </Panel>
           )
         )}
       </div>
@@ -282,155 +404,4 @@ class DayPickerKeyboardShortcuts extends React.PureComponent {
 DayPickerKeyboardShortcuts.propTypes = propTypes;
 DayPickerKeyboardShortcuts.defaultProps = defaultProps;
 
-export default withStyles(({ reactDates: { color, font, zIndex } }) => ({
-  DayPickerKeyboardShortcuts_buttonReset: {
-    background: 'none',
-    border: 0,
-    borderRadius: 0,
-    color: 'inherit',
-    font: 'inherit',
-    lineHeight: 'normal',
-    overflow: 'visible',
-    padding: 0,
-    cursor: 'pointer',
-    fontSize: font.size,
-
-    ':active': {
-      outline: 'none',
-    },
-  },
-
-  DayPickerKeyboardShortcuts_show: {
-    width: 33,
-    height: 26,
-    position: 'absolute',
-    zIndex: zIndex + 2,
-
-    '::before': {
-      content: '""',
-      display: 'block',
-      position: 'absolute',
-    },
-  },
-
-  DayPickerKeyboardShortcuts_show__bottomRight: {
-    bottom: 0,
-    right: 0,
-
-    '::before': {
-      borderTop: '26px solid transparent',
-      borderRight: `33px solid ${color.core.primary}`,
-      bottom: 0,
-      right: 0,
-    },
-
-    ':hover::before': {
-      borderRight: `33px solid ${color.core.primary_dark}`,
-    },
-  },
-
-  DayPickerKeyboardShortcuts_show__topRight: {
-    top: 0,
-    right: 0,
-
-    '::before': {
-      borderBottom: '26px solid transparent',
-      borderRight: `33px solid ${color.core.primary}`,
-      top: 0,
-      right: 0,
-    },
-
-    ':hover::before': {
-      borderRight: `33px solid ${color.core.primary_dark}`,
-    },
-  },
-
-  DayPickerKeyboardShortcuts_show__topLeft: {
-    top: 0,
-    left: 0,
-
-    '::before': {
-      borderBottom: '26px solid transparent',
-      borderLeft: `33px solid ${color.core.primary}`,
-      top: 0,
-      left: 0,
-    },
-
-    ':hover::before': {
-      borderLeft: `33px solid ${color.core.primary_dark}`,
-    },
-  },
-
-  DayPickerKeyboardShortcuts_showSpan: {
-    color: color.core.white,
-    position: 'absolute',
-  },
-
-  DayPickerKeyboardShortcuts_showSpan__bottomRight: {
-    bottom: 0,
-    right: 5,
-  },
-
-  DayPickerKeyboardShortcuts_showSpan__topRight: {
-    top: 1,
-    right: 5,
-  },
-
-  DayPickerKeyboardShortcuts_showSpan__topLeft: {
-    top: 1,
-    left: 5,
-  },
-
-  DayPickerKeyboardShortcuts_panel: {
-    overflow: 'auto',
-    background: color.background,
-    border: `1px solid ${color.core.border}`,
-    borderRadius: 2,
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    right: 0,
-    left: 0,
-    zIndex: zIndex + 2,
-    padding: 22,
-    margin: 33,
-    textAlign: 'left', // TODO: investigate use of text-align throughout the library
-  },
-
-  DayPickerKeyboardShortcuts_title: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    margin: 0,
-  },
-
-  DayPickerKeyboardShortcuts_list: {
-    listStyle: 'none',
-    padding: 0,
-    fontSize: font.size,
-  },
-
-  DayPickerKeyboardShortcuts_close: {
-    position: 'absolute',
-    right: 22,
-    top: 22,
-    zIndex: zIndex + 2,
-
-    ':active': {
-      outline: 'none',
-    },
-  },
-
-  DayPickerKeyboardShortcuts_closeSvg: {
-    height: 15,
-    width: 15,
-    fill: color.core.grayLighter,
-
-    ':hover': {
-      fill: color.core.grayLight,
-    },
-
-    ':focus': {
-      fill: color.core.grayLight,
-    },
-  },
-}), { pureComponent: typeof React.PureComponent !== 'undefined' })(DayPickerKeyboardShortcuts);
+export default DayPickerKeyboardShortcuts;

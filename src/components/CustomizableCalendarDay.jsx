@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import momentPropTypes from 'react-moment-proptypes';
-import { forbidExtraProps, nonNegativeInteger, or } from 'airbnb-prop-types';
-import { withStyles, withStylesPropTypes } from 'react-with-styles';
+import { forbidExtraProps, nonNegativeInteger, or } from '../utils/propTypes';
+import styled from 'styled-components';
 import moment from 'moment';
 import raf from 'raf';
 
@@ -26,6 +26,21 @@ function getStyles(stylesObj, isHovered) {
   return stylesObj;
 }
 
+const StyledCalendarDay = styled.td`
+  box-sizing: border-box;
+  cursor: pointer;
+  font-size: ${({ theme }) => theme.reactDates.font.size};
+  text-align: center;
+
+  &:active {
+    outline: 0;
+  }
+
+  ${({ useDefaultCursor }) => useDefaultCursor && `
+    cursor: default;
+  `}
+`;
+
 const DayStyleShape = PropTypes.shape({
   background: PropTypes.string,
   border: or([PropTypes.string, PropTypes.number]),
@@ -39,7 +54,6 @@ const DayStyleShape = PropTypes.shape({
 });
 
 const propTypes = forbidExtraProps({
-  ...withStylesPropTypes,
   day: momentPropTypes.momentObj,
   daySize: nonNegativeInteger,
   isOutsideDay: PropTypes.bool,
@@ -279,8 +293,6 @@ class CustomizableCalendarDay extends React.PureComponent {
       modifiers,
       tabIndex,
       renderDayContents,
-      css,
-      styles,
       phrases,
 
       defaultStyles: defaultStylesWithHover,
@@ -316,31 +328,33 @@ class CustomizableCalendarDay extends React.PureComponent {
       ariaLabel,
     } = getCalendarDaySettings(day, ariaLabelFormat, daySize, modifiers, phrases);
 
+    // Combine all the custom styles
+    const combinedStyles = {
+      ...daySizeStyles,
+      ...getStyles(defaultStylesWithHover, isHovered),
+      ...(isOutsideDay && getStyles(outsideStylesWithHover, isHovered)),
+      ...(modifiers.has('today') && getStyles(todayStylesWithHover, isHovered)),
+      ...(modifiers.has('first-day-of-week') && getStyles(firstDayOfWeekStylesWithHover, isHovered)),
+      ...(modifiers.has('last-day-of-week') && getStyles(lastDayOfWeekStylesWithHover, isHovered)),
+      ...(modifiers.has('hovered-start-first-possible-end') && getStyles(hoveredStartFirstPossibleEndStylesWithHover, isHovered)),
+      ...(modifiers.has('hovered-start-blocked-minimum-nights') && getStyles(hoveredStartBlockedMinNightsStylesWithHover, isHovered)),
+      ...(modifiers.has('highlighted-calendar') && getStyles(highlightedCalendarStylesWithHover, isHovered)),
+      ...(modifiers.has('blocked-minimum-nights') && getStyles(blockedMinNightsStylesWithHover, isHovered)),
+      ...(modifiers.has('blocked-calendar') && getStyles(blockedCalendarStylesWithHover, isHovered)),
+      ...(hoveredSpan && getStyles(hoveredSpanStylesWithHover, isHovered)),
+      ...(modifiers.has('after-hovered-start') && getStyles(afterHoveredStartStylesWithHover, isHovered)),
+      ...(modifiers.has('selected-span') && getStyles(selectedSpanStylesWithHover, isHovered)),
+      ...(modifiers.has('last-in-range') && getStyles(lastInRangeStylesWithHover, isHovered)),
+      ...(selected && getStyles(selectedStylesWithHover, isHovered)),
+      ...(modifiers.has('selected-start') && getStyles(selectedStartStylesWithHover, isHovered)),
+      ...(modifiers.has('selected-end') && getStyles(selectedEndStylesWithHover, isHovered)),
+      ...(isOutsideRange && getStyles(blockedOutOfRangeStylesWithHover, isHovered)),
+    };
+
     return (
-      <td
-        {...css(
-          styles.CalendarDay,
-          useDefaultCursor && styles.CalendarDay__defaultCursor,
-          daySizeStyles,
-          getStyles(defaultStylesWithHover, isHovered),
-          isOutsideDay && getStyles(outsideStylesWithHover, isHovered),
-          modifiers.has('today') && getStyles(todayStylesWithHover, isHovered),
-          modifiers.has('first-day-of-week') && getStyles(firstDayOfWeekStylesWithHover, isHovered),
-          modifiers.has('last-day-of-week') && getStyles(lastDayOfWeekStylesWithHover, isHovered),
-          modifiers.has('hovered-start-first-possible-end') && getStyles(hoveredStartFirstPossibleEndStylesWithHover, isHovered),
-          modifiers.has('hovered-start-blocked-minimum-nights') && getStyles(hoveredStartBlockedMinNightsStylesWithHover, isHovered),
-          modifiers.has('highlighted-calendar') && getStyles(highlightedCalendarStylesWithHover, isHovered),
-          modifiers.has('blocked-minimum-nights') && getStyles(blockedMinNightsStylesWithHover, isHovered),
-          modifiers.has('blocked-calendar') && getStyles(blockedCalendarStylesWithHover, isHovered),
-          hoveredSpan && getStyles(hoveredSpanStylesWithHover, isHovered),
-          modifiers.has('after-hovered-start') && getStyles(afterHoveredStartStylesWithHover, isHovered),
-          modifiers.has('selected-span') && getStyles(selectedSpanStylesWithHover, isHovered),
-          modifiers.has('last-in-range') && getStyles(lastInRangeStylesWithHover, isHovered),
-          selected && getStyles(selectedStylesWithHover, isHovered),
-          modifiers.has('selected-start') && getStyles(selectedStartStylesWithHover, isHovered),
-          modifiers.has('selected-end') && getStyles(selectedEndStylesWithHover, isHovered),
-          isOutsideRange && getStyles(blockedOutOfRangeStylesWithHover, isHovered),
-        )}
+      <StyledCalendarDay
+        style={combinedStyles}
+        useDefaultCursor={useDefaultCursor}
         role="button" // eslint-disable-line jsx-a11y/no-noninteractive-element-to-interactive-role
         ref={this.setButtonRef}
         aria-disabled={modifiers.has('blocked')}
@@ -353,7 +367,7 @@ class CustomizableCalendarDay extends React.PureComponent {
         tabIndex={tabIndex}
       >
         {renderDayContents ? renderDayContents(day, modifiers) : day.format('D')}
-      </td>
+      </StyledCalendarDay>
     );
   }
 }
@@ -362,19 +376,4 @@ CustomizableCalendarDay.propTypes = propTypes;
 CustomizableCalendarDay.defaultProps = defaultProps;
 
 export { CustomizableCalendarDay as PureCustomizableCalendarDay };
-export default withStyles(({ reactDates: { font } }) => ({
-  CalendarDay: {
-    boxSizing: 'border-box',
-    cursor: 'pointer',
-    fontSize: font.size,
-    textAlign: 'center',
-
-    ':active': {
-      outline: 0,
-    },
-  },
-
-  CalendarDay__defaultCursor: {
-    cursor: 'default',
-  },
-}), { pureComponent: typeof React.PureComponent !== 'undefined' })(CustomizableCalendarDay);
+export default CustomizableCalendarDay;

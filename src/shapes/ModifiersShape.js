@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { and } from 'airbnb-prop-types';
+import { and } from '../utils/propTypes';
 
 export default and([
   PropTypes.instanceOf(Set),
