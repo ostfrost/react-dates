@@ -1,6 +1,6 @@
 {
   "name": "react-dates",
-  "version": "22.0.0",
+  "version": "22.0.1",
   "description": "A responsive and accessible date range picker component built with React",
   "main": "index.js",
   "module": "esm/index.js",
@@ -122,7 +122,7 @@
         "raf": "^3.4.1",
     "react-moment-proptypes": "^1.8.1",
     "react-portal": "^4.2.1",
-    "styled-components": "^6.0.0"
+    "styled-components": "^5.3.11"
   },
   "peerDependencies": {
     "@babel/runtime": "^7.0.0",
