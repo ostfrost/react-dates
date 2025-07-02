@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { forbidExtraProps } from '../utils/propTypes';
 import { addEventListener } from 'consolidated-events';
 import isTouchDevice from 'is-touch-device';
-import OutsideClickHandler from 'react-outside-click-handler';
+import OutsideClickHandler from './OutsideClickHandler';
 import { darken } from 'color2k';
 
 import SingleDatePickerShape from '../shapes/SingleDatePickerShape';

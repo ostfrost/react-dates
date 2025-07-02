@@ -6,7 +6,7 @@ import { forbidExtraProps, mutuallyExclusiveProps, nonNegativeInteger } from '..
 import moment from 'moment';
 import throttle from 'lodash/throttle';
 import isTouchDevice from 'is-touch-device';
-import OutsideClickHandler from 'react-outside-click-handler';
+import OutsideClickHandler from './OutsideClickHandler';
 
 import { DayPickerPhrases } from '../defaultPhrases';
 import getPhrasePropTypes from '../utils/getPhrasePropTypes';
