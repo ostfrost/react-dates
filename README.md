@@ -25,7 +25,24 @@ To run that demo on your own computer:
 * Visit http://localhost:6006/
 
 ## Getting Started
-### Install dependencies
+
+### Install from GitHub (React 18 + Next.js 15 Compatible)
+
+If you want to use the React 18 and Next.js 15 compatible version:
+
+```bash
+# Install from GitHub
+npm install git+https://github.com/your-username/react-dates.git
+
+# Or install from local directory
+npm install /path/to/react-dates
+```
+
+**Note**: This version uses `styled-components` instead of CSS classes and is fully compatible with React 18 and Next.js 15.
+
+### Install from npm (Legacy)
+
+For the original version with CSS classes:
 Ensure packages are installed with correct version numbers by running (from your command line):
   ```sh
   (
@@ -42,7 +59,27 @@ Ensure packages are installed with correct version numbers by running (from your
 
   > If you are running Windows, that command will not work, but if you are running npm 5 or higher, you can run `npx install-peerdeps react-dates` on any platform
 
-### Initialize
+### Initialize (React 18 + Next.js 15 Version)
+
+For the React 18 + Next.js 15 compatible version using `styled-components`:
+
+```jsx
+import { ThemeProvider } from 'styled-components';
+import { DefaultTheme } from 'react-dates';
+
+// Wrap your app with ThemeProvider (optional, for customization)
+function App() {
+  return (
+    <ThemeProvider theme={DefaultTheme}>
+      {/* Your app content */}
+    </ThemeProvider>
+  );
+}
+```
+
+### Initialize (Legacy CSS Version)
+
+For the original version with CSS classes:
 ```js
 import 'react-dates/initialize';
 ```
