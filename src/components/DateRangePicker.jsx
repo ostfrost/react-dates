@@ -453,8 +453,6 @@ class DateRangePicker extends React.PureComponent {
       dayAriaLabelFormat,
       isRTL,
       weekDayFormat,
-      css,
-      styles,
       verticalHeight,
       noBorder,
       transitionDuration,
@@ -475,7 +473,7 @@ class DateRangePicker extends React.PureComponent {
     );
 
     const closeIcon = customCloseIcon || (
-      <CloseButton {...css(styles.DateRangePicker_closeButton_svg)} />
+      <CloseButton />
     );
 
     const inputHeight = getInputHeight(reactDates, small);
@@ -488,23 +486,15 @@ class DateRangePicker extends React.PureComponent {
       <div
         key="day-picker"
         ref={this.setDayPickerContainerRef}
-        {...css(
-          styles.DateRangePicker_picker,
-          anchorDirection === ANCHOR_LEFT && styles.DateRangePicker_picker__directionLeft,
-          anchorDirection === ANCHOR_RIGHT && styles.DateRangePicker_picker__directionRight,
-          orientation === HORIZONTAL_ORIENTATION && styles.DateRangePicker_picker__horizontal,
-          orientation === VERTICAL_ORIENTATION && styles.DateRangePicker_picker__vertical,
-          !withAnyPortal && openDirection === OPEN_DOWN && {
+        style={{
+          ...dayPickerContainerStyles,
+          ...(!withAnyPortal && openDirection === OPEN_DOWN && {
             top: inputHeight + verticalSpacing,
-          },
-          !withAnyPortal && openDirection === OPEN_UP && {
+          }),
+          ...(!withAnyPortal && openDirection === OPEN_UP && {
             bottom: inputHeight + verticalSpacing,
-          },
-          withAnyPortal && styles.DateRangePicker_picker__portal,
-          withFullScreenPortal && styles.DateRangePicker_picker__fullScreenPortal,
-          isRTL && styles.DateRangePicker_picker__rtl,
-          dayPickerContainerStyles,
-        )}
+          }),
+        }}
         onClick={onOutsideClick}
       >
         <DayPickerRangeController
@@ -563,7 +553,6 @@ class DateRangePicker extends React.PureComponent {
 
         {withFullScreenPortal && (
           <button
-            {...css(styles.DateRangePicker_closeButton)}
             type="button"
             onClick={this.onOutsideClick}
             aria-label={phrases.closeDatePicker}
@@ -620,8 +609,6 @@ class DateRangePicker extends React.PureComponent {
       verticalSpacing,
       small,
       regular,
-      css,
-      styles,
     } = this.props;
 
     const { isDateRangePickerInputFocused } = this.state;
